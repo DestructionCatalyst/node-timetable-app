@@ -8,7 +8,13 @@ const Room = sequelize.define('room', {
     },
     capacity: {
         type: Sequelize.INTEGER,
-        allowNull: false
+        allowNull: false,
+        validate: {
+            min: {
+                args: [[0]],
+                msg: "Room capacity must not be negative"
+            }
+        }
     }
 });
 

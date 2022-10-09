@@ -8,7 +8,13 @@ const Group = sequelize.define('group', {
     },
     grade: {
         type: Sequelize.INTEGER,
-        allowNull: false
+        allowNull: false,
+        validate: {
+            min: {
+                args: [[0]],
+                msg: "Grade must not be negative"
+            }
+        }
     }
 });
 

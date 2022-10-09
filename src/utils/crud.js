@@ -1,4 +1,4 @@
-const express = require("express");
+const { errorResponse, notFound, handleError } = require("../utils/errors");
 
 function method_for(endpoint) {
     if (endpoint.indexOf("_") > 0)
@@ -23,33 +23,41 @@ function create_handlers(model) {
         get_one: async (request, response) => {
             const id = parseInt(request.params.id);
             const result = await model.findByPk(id);
-            response.send(result);
+            if (!result)
+                notFound(response);
+            else {
+                response.send(result);
+            }
         },
         post: async (request, response) => {
             const object = request.body;
-            if(!object)
-                return response.sendStatus(400);
-            const result = await model.create(object);
+            const result = await model.create(object)
+                .catch(function (err) {
+                    handleError(request, response, err);
+                });
             response.status(201).send(result);
         },
         put: async (request, response) => {
             const id = parseInt(request.params.id);
             const object = request.body;
-            if(!object)
-                return response.sendStatus(400);
-            await model.update(object, { where: {id: id}});
-            const result = await model.findByPk(id);
-            if (!result)
-                response.status(404).send({"code": 404, "message": "Object not found"})
-            else {
-                response.send(result)
-            }
+            await model.update(object, { where: {id: id}})
+                .then(async function () {
+                    const result = await model.findByPk(id);
+                    if (!result)
+                       notFound(response);
+                    else {
+                        response.send(result);
+                    }
+                })
+                .catch(function (err) {
+                    handleError(request, response, err);
+                });
         },
         delete: async (request, response) => {
             const id = parseInt(request.params.id);
             const target = await model.findByPk(id);
             if (!target)
-                response.status(404).send({"code": 404, "message": "Object not found"})
+                notFound(response);
             else {
                 await target.destroy();
                 response.sendStatus(204);
