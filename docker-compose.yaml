@@ -1,0 +1,26 @@
+version: '3.3'
+
+services:
+  postgres:
+    image: postgres:latest
+    ports:
+      - "5433:5432"
+    env_file:
+      - ./.env
+    volumes:
+      - postgres-db-volume:/var/lib/postgresql/data
+
+  app:
+    build: .
+    env_file:
+      - ./.env
+    ports:
+      - "49160:8080"
+    depends_on:
+      - postgres
+    volumes:
+      - ./src:/app
+    command: [ "npm", "start" ]
+
+volumes:
+  postgres-db-volume:
